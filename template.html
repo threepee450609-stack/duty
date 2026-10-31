@@ -7,7 +7,7 @@
 <script>
 // The page itself can be cached by the browser/CDN for ~10 min, so always re-read the
 // newest copy (unique query string = no cache) and go to the URL written in it.
-var u="__URL__";
+var u="https://duty-manager-l4fu.onrender.com"; // app runs on Render since 2026-10-31 (tunnel URL "__URL__" no longer used)
 function go(x){ if(x) location.replace(x + location.hash); }
 var done=false; setTimeout(function(){ if(!done){ done=true; go(u); } }, 4000);
 fetch("index.html?ts=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.text(); }).then(function(t){
