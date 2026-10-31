@@ -1,12 +1,33 @@
-# Pings the Duty Manager app on Render's free plan so it doesn't fall asleep
-# (free services sleep after 15 minutes without visitors). Runs every 10 minutes, 06:00-03:00 Bangkok.
+# Keeps the Duty Manager app on Render's free plan awake (it sleeps after 15 min without visitors).
+# GitHub's own schedule is unreliable (it can skip runs for hours), so one run stays alive for
+# ~5h50m pinging every 4 minutes, then starts the next run itself (workflow_dispatch). The
+# schedule below is only a backup that restarts the chain if it ever stops.
 name: keep-awake
 on:
-  schedule:
-    - cron: "*/10 23,0-19 * * *"
   workflow_dispatch:
+  schedule:
+    - cron: "17 */3 * * *"
+concurrency:
+  group: keep-awake
+  cancel-in-progress: false
+permissions:
+  actions: write
+  contents: read
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 355
     steps:
-      - run: curl -fsS -m 90 -o /dev/null -w "%{http_code}\n" https://duty-manager-l4fu.onrender.com/api/meta || true
+      - name: Ping every 4 minutes for ~5h50m
+        run: |
+          end=$(( $(date +%s) + 350*60 ))
+          while [ $(date +%s) -lt $end ]; do
+            code=$(curl -s -m 90 -o /dev/null -w "%{http_code}" https://duty-manager-l4fu.onrender.com/api/meta || echo 000)
+            echo "$(TZ=Asia/Bangkok date '+%H:%M') $code"
+            sleep 240
+          done
+      - name: Start the next run
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run keep-awake.yml --repo "${{ github.repository }}" --ref main
