@@ -3,7 +3,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duty Manager</title>
 <meta name="robots" content="noindex">
-<script>var u="__URL__"; if(u) location.replace(u + location.hash);</script>
+<meta http-equiv="Cache-Control" content="no-cache">
+<script>
+// The page itself can be cached by the browser/CDN for ~10 min, so always re-read the
+// newest copy (unique query string = no cache) and go to the URL written in it.
+var u="__URL__";
+function go(x){ if(x) location.replace(x + location.hash); }
+var done=false; setTimeout(function(){ if(!done){ done=true; go(u); } }, 4000);
+fetch("index.html?ts=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.text(); }).then(function(t){
+  var m=t.match(/var u="(https:[^"]+)"/); if(!done){ done=true; go((m&&m[1])||u); }
+}).catch(function(){ if(!done){ done=true; go(u); } });
+</script>
 <style>body{font-family:system-ui,sans-serif;background:#14161c;color:#ece8e2;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:16px;text-align:center}a{color:#ff9433;font-size:18px}p{color:#9a948b}</style>
 </head><body><div>
 <h1>Duty Manager</h1>
